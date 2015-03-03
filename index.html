@@ -702,11 +702,14 @@
 					"time": 23
 				}];
 
+
+
 				sequence.forEach(function(item) {
 					setTimeout(function() {
 						item.func.call(item.func);
 					}, item.time * 1000);
 				});
+
 
 			}
 
@@ -859,7 +862,6 @@
 			var loadScene = new THREE.ObjectLoader();
 			loadScene.load( 'models/scene-nov4.json', function ( object ) {
 
-				window.setTimeout( animateIntro, 3000 );
 
 				var land = object.getObjectByName( 'land' ).children[0];
 				var reflection = new THREE.Mesh( land.geometry, land.material.clone() );
