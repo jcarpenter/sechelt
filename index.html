@@ -229,6 +229,9 @@
 			window.introContainer = new THREE.Group();
 			// Make background element
 
+			//create alphas
+			var texLoader = new THREE.TextureLoader();
+
 			var geometry = new THREE.SphereGeometry( 10, 20, 20, 0, 360 * Math.PI/180, 0, 90 * Math.PI/180 );
 		  var material = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, color: 0x26324F });
 		  var top = new THREE.Mesh( geometry, material );
@@ -239,7 +242,7 @@
 			introContainer.add( bottom );
 
 
-			// Make "Built with webgl"
+			// Make "Built with WebGL"
 
 			var w = 2,
 				h = 0.4;
@@ -259,32 +262,16 @@
 				// background: 'rgba( 205, 54, 149,1 )'
 			})
 
-			// var builtwith_mat = new THREE.MeshBasicMaterial( { side: THREE.FrontSide, transparent: true, opacity: 1, map: welcome_label.mesh.material.map } );
 			builtwith.material.transparent = true;
 			builtwith.material.opacity = 1;
-			builtwith.material.map = builtwith_label.mesh.material.map;
-			builtwith.position.set( 0, 0.45, 0 )
+			builtwith.material.map = builtwith_label.mesh.material.map; // apply label to builtwith mesh
+			builtwith.position.set( 0, 0, 0 )
+			builtwith.rotation.set( 0, Utils.toRad(10), 0 );
+			builtwith.visible = false;
 
 			introContainer.add( builtwith );
 
 
-			// new THREE.TextureLoader().load(
-		 //    "images/alpha-2pxblack-leftright.png",
-		 //    function( tex )
-		 //    {
-		 //      tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
-		 //      tex.repeat.set( 1, 1 );
-		 //      tex.offset.set( -1, 0 );
-		 //      tex.magFilter = tex.minFilter = THREE.NearestFilter;
-		 //      mesh.material.alphaMap = tex;
-		 //      mesh.material.needsUpdate = true;
-
-		 //    // 	new TWEEN.Tween( tex.offset )
-			// 			// .to( { x: 0 }, 1000 )
-			// 			// .easing( TWEEN.Easing.Sinusoidal.Out )
-			// 			// .start();
-
-		 //    } );
 
 
 			// Make "Welcome to the vr web"
@@ -302,86 +289,389 @@
 				verticalAlign: 'middle',
 				color: 'white',
 				fontPosition: { x: 40, y: 0 }
-				// background: 'rgba( 205, 54, 149,1 )'
 			})
 
-			//create materials
+			// create materials
+			var welcome_plane_mat = new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, transparent: true, opacity: 1, color: 0xCD3695 } );
 			var welcome_label_mat = new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, transparent: true, opacity: 1, map: welcome_label.mesh.material.map } );
-			var welcome_plane_mat = new THREE.MeshBasicMaterial( { side: THREE.DoubleSide, transparent: false, opacity: 1, color: 0xCD3695 } );
-			welcome_materials = [ welcome_label_mat, welcome_plane_mat ];
+			welcome_materials = [ welcome_plane_mat, welcome_label_mat ];
+
+			// load alpha map and apply to welcome_plane
+			texLoader.load( 
+		    "images/alpha-2pxblack-leftright.png",
+		    function( tex )
+		    {
+		      tex.magFilter = tex.minFilter = THREE.NearestFilter;
+		      welcome_plane_mat.alphaMap = tex;
+		      welcome_plane_mat.needsUpdate = true;
+		    } );
 
 			//create mesh
 			var welcome = THREE.SceneUtils.createMultiMaterialObject( welcome_plane.geometry, welcome_materials );
-			// welcome.position.set( 0, 0, -1 )
+			welcome.visible = false;
+			welcome.position.set( 0, -0.5, 0 );
+			welcome.rotation.set( 0, Utils.toRad(10), 0 );
+
 			introContainer.add( welcome );
 
-			//dolly.add(camera)
+			console.log( introContainer )
 
-			var geometry = new THREE.BoxGeometry( 3,3, 3 );
-			var material = new THREE.MeshBasicMaterial( {color: 0x00ff00, wireframe: true} );
-			var cube = new THREE.Mesh( geometry, material );
-			cube.position.z = -10;
 
-			dolly.add( introContainer );
 
 			// Make border
 
-			var border = VRUIKit.makeBorder(3, 1.5, 0.01, 225, 90, 0, 0xFFFFFF, 1);
-			//dolly.add( border );
+			var outline = new VRUIKit.makeBorder( 5.1, 3.3, 0.3, 225, 90, 0, 0xFFFFFF, 1 );
+			// introContainer.add( border );
+			
+
+
+			// Make www
+
+			var w = 0.6,
+				h = 0.25;
+
+			var www_white = new VRUIKit.TextLabel( "WWW",
+			{
+				width: w,
+				height: h,
+				font: 'bold 180px montserrat',
+				textAlign: 'center',
+				verticalAlign: 'middle',
+				color: 'rgba( 255, 255, 255, 1 )',
+			})
+			www_white.mesh.visible = false;
+			www_white.mesh.translateZ( 0.02 );
+			www_white.mesh.visible = false;
+			introContainer.add( www_white.mesh );
+
+		
+			var www_blue = new VRUIKit.TextLabel( "WWW",
+			{
+				width: w,
+				height: h,
+				font: 'bold 180px montserrat',
+				textAlign: 'center',
+				verticalAlign: 'middle',
+				color: 'rgba( 128, 207, 255, 1 )',
+				// background: 'rgba(0,0,0,1)'
+			})
+			www_blue.mesh.material.opacity = 0.6;
+			www_blue.mesh.translateZ( 0.01 );
+			www_blue.mesh.visible = false;
+			introContainer.add( www_blue.mesh );
+
+			var www_red = new VRUIKit.TextLabel( "WWW",
+			{
+				width: w,
+				height: h,
+				font: 'bold 180px montserrat',
+				textAlign: 'center',
+				verticalAlign: 'middle',
+				color: 'rgba( 255, 39, 66, 1 )',
+			})
+			www_red.mesh.material.opacity = 0.5;
+			www_red.mesh.visible = false;
+			introContainer.add( www_red.mesh );
+
+			var www = new THREE.Object3D();
+			www.add( www_white.mesh );
+			www.add( www_blue.mesh );
+			www.add( www_red.mesh );
+			www.position.set( 0, -0.25, -1.1 )
+			introContainer.add( www );
+
+			// Make world person animation
+
+
+
+
+			// Make floating frames
+				
+			var frames = new THREE.Object3D();
+			introContainer.add( frames );
+
+			for( var i = 0; i < 40; i++ ){
+
+				var posX = Utils.getRandomInt( -3, 3 );
+				var posY = Utils.getRandomInt( -3, 3 );
+				var posZ = Utils.getRandomInt( -8, 0 );
+
+				var w = Utils.getRandomInt( 0.5, 2 );
+				var h = Utils.getRandomInt( 0.5, 2 );
+				var d = Utils.getRandomInt( 0.5, 2 );
+
+				var frame = new VRUIKit.makeFrame( w, h, d, true, true, true, 0.003, 0x12B9D7, 1 );
+				Utils.shuffleArray( frame.children );
+				frame.position.set( posX, posY, posZ );
+
+				for( var e = 0; e < frame.children.length; e++ ) { 
+
+					var edge = frame.children[e];
+					edge.visible = false;
+
+				}
+				
+				frames.add(frame);
+
+			}
+
+
+
+			// Make high frames
+
+			var highlight_frame = new VRUIKit.makeFrame( 1.25, 1.25, 1.25, true, true, true, 0.01, 0xFFFFFF, 1 );
+			Utils.shuffleArray( frame.children );
+			highlight_frame.position.set( 0, 0, -5 );
+			introContainer.add( highlight_frame );
+			
+			for( var e = 0;	 e < highlight_frame.children.length; e++ ) { 
+
+				var edge = highlight_frame.children[e];
+				edge.visible = false;
+
+			}
+
+
+
+			// Add introContainer to the dolly (which the camera is also a parented to)
+
+			dolly.add( introContainer );
+
 
 
 			// Animate introduction
 
 			function animateIntro(){
 
-				// welcome.children[1].scale.set( 1, 0, 1 );
-				// new TWEEN.Tween( welcome.children[1].scale )
-				// 	.to( { y: 1 }, 1500 )
-				// 	.easing( TWEEN.Easing.Quintic.Out )
-				// 	.delay( 1000 )
-				// 	.start();
 
-				new TWEEN.Tween( top.rotation )
-					.to( { x: 1.57 }, 3000 )
-					.delay( 2000 )
-					.easing(TWEEN.Easing.Quintic.In)
-					.start();
+				// Reveal person
+				// Reveal taglines
+				// Reveal frames
+				// Hold....
+				// Close frames
+				// Open the eyelids
+				// Hold...
+				// Close taglines
+				
 
-				new TWEEN.Tween( top.scale )
-					.to( { x: 0.005, y: 0.005, z: 0.005 }, 3000 )
-					.delay( 2000 )
-					.easing(TWEEN.Easing.Quintic.In)
-					.start();
+				// reveal www
 
-				new TWEEN.Tween( top.position )
-					.to( { z: 2 }, 6000 )
-					.delay( 2000 )
-					.easing(TWEEN.Easing.Quintic.In)
-					.onComplete( function(){ introContainer.remove( top ) } )
-					.start();
+				var revealwww = function() { 
+
+					// reveal the WWW, and then hide it
+					// set the Y offset of www_white.mesh.material.map to 1
+					// animate it to 0
+
+					www_white.mesh.visible = true;
+					www_white.mesh.material.map.offset.set( 0, 1 );
+
+					new TWEEN.Tween( www_white.mesh.material.map.offset )
+						.to( { y: 0 }, 1000 )
+						.easing( TWEEN.Easing.Cubic.Out )
+						.onComplete( function(){
+
+							new TWEEN.Tween( www_white.mesh.material ) // fade out white text
+								.to( { opacity: 0 }, 2000 )
+								.delay( 0 )
+								.easing( TWEEN.Easing.Cubic.In )
+								.start()
+
+							www_blue.mesh.visible = true;
+
+							new TWEEN.Tween( www_blue.mesh.position ) // reveal color text
+								.to( { x: 0.009, y: 0.009 }, 4000 )
+								.delay( 0 )
+								.easing( TWEEN.Easing.Quartic.InOut )
+								.start()
+
+							new TWEEN.Tween( www_blue.mesh.material )
+								.to( { opacity: 0 }, 2000 )
+								.delay( 3000 )
+								.easing( TWEEN.Easing.Quartic.InOut )
+								.onComplete( function(){ 
+									introContainer.remove( www );
+								})
+								.start()
+
+							www_red.mesh.visible = true;
+
+							new TWEEN.Tween( www_red.mesh.position )
+								.to( { x: -0.009, y: -0.009 }, 4000 )
+								.delay( 0 )
+								.easing( TWEEN.Easing.Quartic.InOut )
+								.start()
+
+							new TWEEN.Tween( www_red.mesh.material )
+								.to( { opacity: 0 }, 2000 )
+								.delay( 3000 )
+								.easing( TWEEN.Easing.Quartic.InOut )
+								.start()
+
+						})
+						.start()
 
 
-				new TWEEN.Tween( bottom.rotation )
-					.to( { x: -1.57 }, 3000 )
-					.delay( 2000 )
-					.easing(TWEEN.Easing.Quintic.In)
-					.start();
-
-				new TWEEN.Tween( bottom.scale )
-					.to( { x: 0.005, y: 0.005, z: 0.005 }, 3000 )
-					.delay( 2000 )
-					.easing(TWEEN.Easing.Quintic.In)
-					.start();
-
-				new TWEEN.Tween( bottom.position )
-					.to( { z: 2 }, 3000 )
-					.delay( 2000 )
-					.easing(TWEEN.Easing.Quintic.In)
-					.onComplete( function(){ introContainer.remove( bottom ) } )
-					.start();
+				}
 
 
-				// console.log( welcome.children[0] );
+				// reveal frames
+
+				var revealframes = function() {
+
+					for ( var i = 0; i < frames.children.length; i++ ){ // loop through the frames
+
+						var f = frames.children[i];
+
+						for( var e = 0; e < f.children.length; e++ ) { // animate each edge of each frame
+
+							var edge = f.children[e];
+							edge.scale.z = 0.001;
+							edge.visible = true;
+
+							new TWEEN.Tween( edge.scale )
+								.to( { z: 1  }, 4000 )
+								.delay( i * 50 )
+								.easing( TWEEN.Easing.Sinusoidal.Out )
+								.start();
+						}
+
+					}
+
+					new TWEEN.Tween( frames.position ) // tween in the position of each frame
+						.to( { z: "10"  }, 13000 )
+						.onComplete( function(){ 
+							frames.visible = false;
+						} )
+						.start();
+
+				}
+
+
+				// reveal highlight frame
+
+				var reveal_highlightframe = function(){ // reveal highlight frame
+
+					for ( var h = 0; h < highlight_frame.children.length; h++ ) { // animate in highlight frame
+
+						var edge = highlight_frame.children[h];
+						edge.scale.z = 0.001;
+						edge.visible = true;
+
+						new TWEEN.Tween( edge.scale )
+							.to( { z: 1  }, 4000 )
+							.delay( i * 50 )
+							.easing( TWEEN.Easing.Sinusoidal.Out )
+							.start();
+					}
+
+					new TWEEN.Tween( highlight_frame.position ) // tween in the position of each frame
+						.to( { z: "10"  }, 13000 )
+						.onComplete( function(){ 
+							highlight_frame.visible = false;
+						} )
+						.start();
+
+
+				}
+
+
+				//open eyelids
+
+				var openeyelids = function() {
+
+					new TWEEN.Tween( top.rotation ) // top eyelid
+						.to( { x: 1.57 }, 6500 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.start();
+
+					new TWEEN.Tween( top.scale )
+						.to( { x: 0.005, y: 0.005, z: 0.005 }, 3000 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.delay( 2000 )
+						.start();
+
+					new TWEEN.Tween( top.position )
+						.to( { z: 2 }, 6000 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.onComplete( function(){ introContainer.remove( top ) } )
+						.start();
+
+					new TWEEN.Tween( bottom.rotation ) // bottom eyelid
+						.to( { x: -1.57 }, 6500 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.start();
+
+					new TWEEN.Tween( bottom.scale )
+						.to( { x: 0.005, y: 0.005, z: 0.005 }, 3000 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.delay( 2000 )
+						.start();
+
+					new TWEEN.Tween( bottom.position )
+						.to( { z: 2 }, 6000 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.onComplete( function(){ introContainer.remove( bottom ) } )
+						.start();
+
+				}
+
+
+				// reveal splash text
+
+				var splashtext = function() {
+
+					builtwith.visible = true;
+					welcome.visible = true;
+
+					builtwith.material.map.offset.set( 1, 0 );
+					welcome_plane_mat.alphaMap.offset.set( 1, 0 );
+					welcome_label_mat.opacity = 0;
+
+					new TWEEN.Tween( builtwith.material.map.offset )
+						.to( { x: 0 }, 800 )
+						.easing(TWEEN.Easing.Quintic.Out)
+						.start();
+
+					new TWEEN.Tween( welcome_plane_mat.alphaMap.offset )
+						.to( { x: 0 }, 800 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.start();
+
+					new TWEEN.Tween( welcome_label_mat )
+						.to( { opacity: 1 }, 800 )
+						.easing(TWEEN.Easing.Quintic.In)
+						.start();
+				}
+
+
+				// define sequence of animation
+
+				var sequence = [{
+					"func": revealwww,
+					"time": 2
+				},
+				{
+					"func": revealframes,
+					"time": 2
+				},
+				{
+					"func": reveal_highlightframe,
+					"time": 7
+				},
+				{
+					"func": openeyelids,
+					"time": 8
+				},
+				{
+					"func": splashtext,
+					"time": 23
+				}];
+
+				sequence.forEach(function(item) {
+					setTimeout(function() { 
+						item.func.call(item.func);
+					}, item.time * 1000);
+				});
 
 			}
 
@@ -534,7 +824,7 @@
 			var loadScene = new THREE.ObjectLoader();
 			loadScene.load( 'models/scene-nov4.json', function ( object ) {
 
-				window.setTimeout( animateIntro, 2000 );
+				window.setTimeout( animateIntro, 3000 );
 
 				var land = object.getObjectByName( 'land' ).children[0];
 				var reflection = new THREE.Mesh( land.geometry, land.material.clone() );

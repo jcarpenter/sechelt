@@ -10,7 +10,6 @@ VRUIKit.TextLabel = function(text, opts) {
   this.width = opts.hasOwnProperty('width') ? opts.width : 1; // three js units
   this.height = opts.hasOwnProperty('height') ? opts.height : 0.2;
 
-
   // CSS Text format
   // Formal syntax: [ [ <‘font-style’> || <font-variant-css21> || <‘font-weight’> || <‘font-stretch’> ]? <‘font-size’> [ / <‘line-height’> ]? <‘font-family’> ] | caption | icon | menu | message-box | small-caption | status-bar
   // https://developer.mozilla.org/en-US/docs/Web/CSS/font
