@@ -5,6 +5,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<meta content="Josh Carpenter%0DMr.doob%0D—%0Dthree.js, Cinema 4D" name="description">
+		<link rel="stylesheet" href="fonts/montserrat/montserrat.css">
 		<style>
 			html, body {
 				background-color: #000;
@@ -13,6 +14,7 @@
 				overflow: hidden;
 			}
 		</style>
+
 	</head>
 
 	<body>
@@ -26,6 +28,10 @@
 		<script src="js/lib/utils.js"></script>
 		<script src="js/lib/vruikit.js"></script>
 		<script src="js/sketch2three.js"></script>
+		<script src="js/evt.js"></script>
+		<script src="js/gamepadmapping.js"></script>
+  	<script src="js/xboxpad.js"></script>
+		<script src="js/vrclient.js"></script>
 		<script>
 
 		var parameters = ( function () {
@@ -38,16 +44,30 @@
 			return parameters;
 		} )();
 
+		var started = false;
+
+		xBoxPad.on('pressed', function(buttons) {
+	    //if (buttons.length === 1 && buttons[0] === 'A') {
+	    if (buttons.length === 1 && buttons[0] === 'Start' || buttons[0] === 'A') {
+	      if (!started) {
+	      	play();
+	      	started = true;
+	      };
+
+	      return;
+	    };
+	  });
+
+
+
 		var camera, scene, renderer;
 		var controls, effect;
 		var controls2, clock = new THREE.Clock();
 		var sky, water;
 		var cameraPath;
 		var dolly;
-    var manager;
 
 		function init() {
-
 			renderer = new THREE.WebGLRenderer( { antialias: true } );
 			renderer.autoClear = false;
 			renderer.setClearColor( 0x404040 );
@@ -69,13 +89,28 @@
 
 			dolly.add( camera );
 
-			// Effect and Controls for VR
-			effect = new THREE.VREffect( renderer );
-			controls = new THREE.VRControls( camera );
-
       onWindowResize();
 
-      manager = new WebVRManager(effect); // Initialize the WebVR manager.
+      function setRenderMode(mode) {
+				var modes = VRClient.renderModes;
+				if (mode == modes.mono) {
+					controls = new THREE.VRControls( camera );
+					effect = renderer;
+				} else if (mode == modes.stereo) {
+					controls = null;
+					effect = new THREE.StereoEffect( renderer );
+
+				} else if (mode == modes.vr) {
+					controls = new THREE.VRControls( camera );
+					effect = new THREE.VREffect( renderer );
+				}
+
+				effect.setSize( window.innerWidth, window.innerHeight );
+			}
+
+			setRenderMode(VRClient.renderModes.mono);
+
+      VRClient.onRenderModeChange = setRenderMode;
 
 
 			// Create skybox
@@ -332,7 +367,7 @@
 
 			// Animate introduction
 
-			function animateIntro(){
+			window.animateIntro = function(){
 
 				// welcome.children[1].scale.set( 1, 0, 1 );
 				// new TWEEN.Tween( welcome.children[1].scale )
@@ -534,8 +569,6 @@
 			var loadScene = new THREE.ObjectLoader();
 			loadScene.load( 'models/scene-nov4.json', function ( object ) {
 
-				window.setTimeout( animateIntro, 2000 );
-
 				var land = object.getObjectByName( 'land' ).children[0];
 				var reflection = new THREE.Mesh( land.geometry, land.material.clone() );
 				reflection.material.side = THREE.BackSide;
@@ -665,14 +698,15 @@
 
 		}
 
-		var playing = true;
+		var playing = false;
 
 		function togglePlay() {
-			playing = playing == false?true:false;
+			playing = (playing == false) ? true : false;
 		};
 
 		function play() {
 			playing = true;
+			animateIntro();
 		}
 
 		function rewind() {
@@ -683,7 +717,9 @@
 			camera.aspect = window.innerWidth / window.innerHeight;
 			camera.updateProjectionMatrix();
 
-			effect.setSize( window.innerWidth, window.innerHeight );
+			if (effect) {
+				effect.setSize( window.innerWidth, window.innerHeight );
+			}
 		};
 
 
@@ -726,16 +762,10 @@
 
 			sky.position.copy( dolly.position );
 
-			// water.position.x = dolly.position.x;
-			// water.position.z = dolly.position.z;
+			water.position.x = dolly.position.x;
+			water.position.z = dolly.position.z;
 
-      //if (manager.isVRMode()) {
-        effect.render( scene, camera );
-      // } else {
-        // renderer.render( scene, camera );
-      // }
-
-
+      effect.render( scene, camera );
 
 		}
 
