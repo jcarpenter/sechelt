@@ -18,6 +18,10 @@
 	</head>
 
 	<body>
+		<script src="js/utils.js"></script>
+		<script src="js/vruikit.js"></script>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="js/socket.io-stream.js"></script>
 		<script src="js/three.min.js"></script>
 		<script src="js/tween.min.js"></script>
 		<script src="js/VRControls.js"></script>
@@ -25,8 +29,6 @@
 		<script src="js/C4DCurveLoader.js"></script>
 		<script src="js/webvr-polyfill.js"></script>
 		<script src="js/webvr-manager.js"></script>
-		<script src="js/lib/utils.js"></script>
-		<script src="js/lib/vruikit.js"></script>
 		<script src="js/sketch2three.js"></script>
 		<script src="js/evt.js"></script>
 		<script src="js/gamepadmapping.js"></script>
@@ -349,7 +351,6 @@
 
 			introContainer.add( welcome );
 
-			console.log( introContainer )
 
 
 
@@ -954,7 +955,7 @@
 					// scene.add( line );
 
 
-					requestAnimationFrame( animate );
+					animate();
 
 				} );
 
@@ -1023,8 +1024,17 @@
 
 		var speed = 20;
 
+		var doneDemo = false;
+
+		function onDemoDone() {
+			setTimeout(function() {
+				getTweets();
+			}, 3000)
+
+		}
 
 		function animate( time ) {
+
 			requestAnimationFrame( animate );
 
 			TWEEN.update();
@@ -1034,6 +1044,13 @@
 				if (!currentTime) currentTime = time;
 				if (playing) currentTime += speed;
 
+				if (gotime > 0.99) {
+					if (!doneDemo) {
+						onDemoDone();
+						doneDemo = true;
+					}
+				}
+
 				gotime = TWEEN.Easing.Sinusoidal.InOut( Math.min( currentTime / 70000, 1 ) ) * 0.9999;
 
 				var pointA = cameraPath.getPointAt( gotime );
@@ -1041,6 +1058,8 @@
 
 				pointA.z = -pointA.z;
 				pointB.z = -pointB.z;
+
+				//console.log(pointA, pointB);
 
 				dolly.position.copy( pointA );
 				dolly.lookAt( pointB );
@@ -1053,7 +1072,6 @@
 			}
 
 
-
 			sky.position.copy( dolly.position );
 
 			water.position.x = dolly.position.x;
@@ -1062,6 +1080,102 @@
       effect.render( scene, camera );
 
 		}
+
+
+
+
+
+
+		// tweets
+
+      // draw tweets
+
+      function makeBubble( data ){
+
+        var text = data.text;
+
+        function makeCurvedLabel(text, opts) {
+					var label = new VRUIKit.TextLabel(text, opts);
+					var shapeMesh = VRUIKit.makeCurvedPlane( opts.width, opts.height, opts.radius, 0xffffff);
+					// map label texture to shape
+					shapeMesh.material.map = label.mesh.material.map;
+					// reassign label mesh
+					label.mesh = shapeMesh;
+					return label;
+				}
+
+				var tweetLabel = makeCurvedLabel(text, {
+					width: 0.5, height: 0.1, radius: Utils.getRandomArbitrary(0.5, 1.5),
+					background: 'black',
+					color: 'white',
+					fontPosition: { x: 10, y: 0 },
+					font: 'normal 24px montserrat',
+					lineHeight: 22,
+					verticalAlign: 'top'
+				})
+				var mesh = tweetLabel.mesh;
+
+
+        //randomize holder rotation and height
+        var yRot = Utils.getRandomArbitrary( -120, 120 )
+        mesh.rotation.set( 0, yRot * Math.PI/180, 0 )
+        var yPos = Utils.getRandomArbitrary( -0.75, 0.5 );
+        mesh.position.set( 0, yPos, 0 )
+
+        // return mesh;
+        bubblesGroup.add( mesh );
+        bubbleAnimateIn( mesh );
+      }
+
+      function bubbleAnimateIn( mesh ){
+        var setY = mesh.position.y + 0.1;
+        new TWEEN.Tween( mesh.position )
+          .to( { y: setY }, 1000 )
+          .easing( TWEEN.Easing.Quadratic.Out )
+          .start();
+
+        mesh.scale.set( 0.5, 0.5, 0.5 );
+        new TWEEN.Tween( mesh.scale )
+          .to( { x:1, y:1, z:1 }, 1000 )
+          .easing( TWEEN.Easing.Quadratic.Out )
+          .start();
+
+      }
+
+
+			var bubblesGroup = new THREE.Group;
+
+			function getTweets() {
+				dolly.add( bubblesGroup );
+
+        // get a first set of tweets so that the screen isn't empty.
+        var cachedTweets = Utils.loadJson('/tweets')
+        var stagger = 50;
+        var scale = 4;
+        cachedTweets.then(function(tweets) {
+          tweets.forEach(function(tweet, i) {
+            var data = { text: tweet.text  }
+            setTimeout(function() {
+              makeBubble( data );
+            }, i*stagger*scale);
+          })
+        })
+      }
+
+
+
+
+		// keyboard
+		function onkey(event) {
+	    switch (event.keyCode) {
+	      case 13: // enter
+	        play();
+	        break;
+	    }
+    };
+
+
+		window.addEventListener("keydown", onkey, true);
 
 		init();
 
