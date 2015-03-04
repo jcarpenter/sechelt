@@ -46,21 +46,6 @@
 			return parameters;
 		} )();
 
-		var started = false;
-
-		xBoxPad.on('pressed', function(buttons) {
-	    //if (buttons.length === 1 && buttons[0] === 'A') {
-	    if (buttons.length === 1 && buttons[0] === 'Start' || buttons[0] === 'A') {
-	      if (!started) {
-	      	play();
-	      	started = true;
-	      };
-
-	      return;
-	    };
-	  });
-
-
 
 		var camera, scene, renderer;
 		var controls, effect;
@@ -208,25 +193,6 @@
 			scene.add( mesh );
 
 
-			// Water texture
-
-			// Causes massive jank and out-of-memory errors, so I abandoned this approach for time being...
-			/*
-			var texture = THREE.ImageUtils.loadTexture( 'images/waves-2.png' );
-			texture.wrapS = THREE.RepeatWrapping;
-			texture.wrapT = THREE.RepeatWrapping;
-			texture.repeat.set( 40, 40 );
-			var geometry = new THREE.PlaneGeometry( 10000, 10000, 1000, 1000 );
-			var material = new THREE.MeshBasicMaterial( {
-				//color: 0xffffff,
-				map: texture
-			} );
-			water2 = new THREE.Mesh( geometry, material );
-			water2.position.y = 3;
-			water2.rotation.x = - Math.PI / 2;
-			scene.add( water2 );
-			*/
-
 
 			// Create water
 
@@ -300,9 +266,9 @@
 			})
 
 			builtwith.material.transparent = true;
-			builtwith.material.opacity = 1;
+			builtwith.material.alphaTest = 0.2;
 			builtwith.material.map = builtwith_label.mesh.material.map; // apply label to builtwith mesh
-			builtwith.position.set( 0, 0, 0 )
+			builtwith.position.set( 0, -0.1, 0 )
 			builtwith.rotation.set( 0, Utils.toRad(10), 0 );
 			builtwith.visible = false;
 
@@ -323,9 +289,8 @@
 				height: h,
 				font: 'normal 80px montserrat',
 				textAlign: 'left',
-				verticalAlign: 'middle',
 				color: 'white',
-				fontPosition: { x: 40, y: 0 }
+				fontPosition: { x: 40, y: 100 }
 			})
 
 			// create materials
@@ -700,7 +665,7 @@
 				},
 				{
 					"func": splashtext,
-					"time": 23
+					"time": 24
 				}];
 
 
@@ -713,146 +678,6 @@
 
 
 			}
-
-
-
-
-
-
-			/* ============== Load sketch2three elements ==============*/
-
-			/*
-		  function animateStuff(){ //gets called at end of loadSketch
-
-		    for( i = 0; i < elements.length; i++ ){
-
-		      element = elements[i];
-
-		      //if( element.name.indexOf("fav") !== -1 ) { //find all elements with "fav" in the name
-
-		        element.position.setY( element.position.y + 1 );
-		        var tween = new TWEEN.Tween( element.position )
-		          .to( { y:"-1" }, 2500 )
-		          .easing(TWEEN.Easing.Cubic.Out)
-		          .delay( i*25 )
-		          .start();
-		      //}
-		    }
-
-		  }
-
-			function bend( group, amount, multiMaterialObject ) {
-		    function bendVertices( mesh, amount, parent ) {
-		      var geometry = mesh.geometry;
-
-		      if (!mesh.userData.geometry) {
-		        mesh.userData.geometry = geometry.clone();
-		      } else {
-		        mesh.geometry = mesh.userData.geometry.clone();
-		        mesh.geometry.verticesNeedUpdate = true;
-		      }
-
-		      var vertices = mesh.geometry.vertices;
-
-		      if (!parent) {
-		        parent = mesh;
-		      }
-
-		      for (var i = 0; i < vertices.length; i++) {
-		        var vertex = vertices[i];
-
-		        // apply bend calculations on vertexes from world coordinates
-		        parent.updateMatrixWorld();
-
-		        var worldVertex = parent.localToWorld(vertex);
-
-		        var worldX = Math.sin( worldVertex.x / amount) * amount;
-		        var worldZ = - Math.cos( worldVertex.x / amount ) * amount;
-		        var worldY = worldVertex.y;
-
-		        // convert world coordinates back into local object coordinates.
-		        var localVertex = parent.worldToLocal(new THREE.Vector3(worldX, worldY, worldZ));
-		        vertex.x = localVertex.x;
-		        vertex.z = localVertex.z;
-		        vertex.y = localVertex.y;
-		      };
-
-		      mesh.geometry.computeBoundingSphere();
-		      mesh.geometry.verticesNeedUpdate = true;
-		    }
-
-		    for ( var i = 0; i < group.children.length; i ++ ) {
-		      var element = group.children[ i ];
-
-		      if (element.geometry.vertices) {
-		        if (multiMaterialObject) {
-		          bendVertices( element, amount, group);
-		        } else {
-		          bendVertices( element, amount);
-		        }
-		      }
-		    }
-
-		    if (group.children.length == 0) {
-		      bendVertices(group, amount);
-		    }
-		  };
-
-		  var opts = {
-				pixelScale: 0.0035,
-				artboardWidth: 3600,
-				artboardHeight: 900,
-				exclude: [],
-				depth: 2
-			}
-
-			var s23 = Sketch2three.load('images/s23/index.json', opts)
-				.then(function(meshes) {
-
-					var xOffset = -(opts.artboardWidth / 2 * opts.pixelScale);
-					var yOffset = (opts.artboardHeight / 2 * opts.pixelScale);
-
-					var group = new THREE.Group();
-
-					meshes.forEach(function(mesh) {
-						//self.layout.add(mesh);
-						mesh.position.x += xOffset;
-						mesh.position.y += yOffset;
-
-						group.add( mesh );
-
-					});
-
-					scene.add(group);
-					bend( group, opts.depth );
-					group.scale.set( 10, 10, 10 );
-					group.position.set( -170, 0, -7420 );
-
-
-					function getMeshes(meshes, search) {
-			      return meshes.filter(function(mesh) {
-			        return mesh.name.indexOf(search) > -1
-			      });
-			    }
-
-					var m = getMeshes(meshes, 'darken');
-					m[0].scale.x *= 1.1;
-					m[0].scale.y *= 1.1;
-					m[0].scale.z *= 1.1;
-					m[0].material.visible = false;
-
-
-					// m[0].scale.set( 1, 0.2, 1 );
-
-					console.log(m[0]);
-				});
-
-			*/
-
-
-
-
-
 
 
 
@@ -898,7 +723,8 @@
 
 				// Create sounds
 
-				/*
+
+				window.startSounds = function() {
 					var listener = new THREE.AudioListener();
 					camera.add( listener );
 
@@ -922,7 +748,8 @@
 					sound.setLoop( true );
 					sound.setRefDistance( 100 );
 					scene.add( sound );
-				*/
+				}
+
 
 				// Load camera path
 
@@ -962,36 +789,10 @@
 			} );
 
 			window.addEventListener( 'resize', onWindowResize, false );
-			//document.body.addEventListener('click', togglePlay);
 		}
 
-		// Explode objects function
 
-		function explode( geometry, material ) {
 
-			var group = new THREE.Group();
-
-			for ( var i = 0; i < geometry.faces.length; i ++ ) {
-
-				var face = geometry.faces[ i ];
-
-				var vertexA = geometry.vertices[ face.a ].clone();
-				var vertexB = geometry.vertices[ face.b ].clone();
-				var vertexC = geometry.vertices[ face.c ].clone();
-
-				var geometry2 = new THREE.Geometry();
-				geometry2.vertices.push( vertexA, vertexB, vertexC );
-				geometry2.faces.push( new THREE.Face3( 0, 1, 2 ) );
-
-				var mesh = new THREE.Mesh( geometry2, material );
-				mesh.position.sub( geometry2.center() );
-				group.add( mesh );
-
-			}
-
-			return group;
-
-		}
 
 		var playing = false;
 
@@ -1001,6 +802,7 @@
 
 		function play() {
 			playing = true;
+			startSounds();
 			animateIntro();
 		}
 
@@ -1018,6 +820,9 @@
 		};
 
 
+
+
+
 		var currentTime = 38000,
 			startTime = null;
 			gotime = null;
@@ -1026,11 +831,11 @@
 
 		var doneDemo = false;
 
+
 		function onDemoDone() {
 			setTimeout(function() {
 				getTweets();
 			}, 3000)
-
 		}
 
 		function animate( time ) {
@@ -1071,6 +876,12 @@
 				controls.update();
 			}
 
+			bubblesGroup.children.forEach(function(bubble) {
+				bubble.userData.speedY = Utils.getRandomArbitrary(0.0001, 0.0005);
+				bubble.userData.speedRot = Utils.getRandomArbitrary(0.0001, 0.0005);
+				bubble.position.y += bubble.userData.speedY;
+				//bubble.rotation.y += bubble.userData.speedRot;
+			})
 
 			sky.position.copy( dolly.position );
 
@@ -1088,82 +899,98 @@
 
 		// tweets
 
-      // draw tweets
+	  function makeBubble( data ){
+	    var text = data.text;
 
-      function makeBubble( data ){
+	    function makeCurvedLabel(text, opts) {
+				var label = new VRUIKit.TextLabel(text, opts);
+				var shapeMesh = VRUIKit.makeCurvedPlane( opts.width, opts.height, opts.radius, 0xffffff);
+				// map label texture to shape
+				shapeMesh.material.map = label.mesh.material.map;
+				// reassign label mesh
+				label.mesh = shapeMesh;
+				return label;
+			}
 
-        var text = data.text;
-
-        function makeCurvedLabel(text, opts) {
-					var label = new VRUIKit.TextLabel(text, opts);
-					var shapeMesh = VRUIKit.makeCurvedPlane( opts.width, opts.height, opts.radius, 0xffffff);
-					// map label texture to shape
-					shapeMesh.material.map = label.mesh.material.map;
-					// reassign label mesh
-					label.mesh = shapeMesh;
-					return label;
-				}
-
-				var tweetLabel = makeCurvedLabel(text, {
-					width: 0.5, height: 0.1, radius: Utils.getRandomArbitrary(0.5, 1.5),
-					background: 'black',
-					color: 'white',
-					fontPosition: { x: 10, y: 0 },
-					font: 'normal 24px montserrat',
-					lineHeight: 22,
-					verticalAlign: 'top'
-				})
-				var mesh = tweetLabel.mesh;
-
-
-        //randomize holder rotation and height
-        var yRot = Utils.getRandomArbitrary( -120, 120 )
-        mesh.rotation.set( 0, yRot * Math.PI/180, 0 )
-        var yPos = Utils.getRandomArbitrary( -0.75, 0.5 );
-        mesh.position.set( 0, yPos, 0 )
-
-        // return mesh;
-        bubblesGroup.add( mesh );
-        bubbleAnimateIn( mesh );
-      }
-
-      function bubbleAnimateIn( mesh ){
-        var setY = mesh.position.y + 0.1;
-        new TWEEN.Tween( mesh.position )
-          .to( { y: setY }, 1000 )
-          .easing( TWEEN.Easing.Quadratic.Out )
-          .start();
-
-        mesh.scale.set( 0.5, 0.5, 0.5 );
-        new TWEEN.Tween( mesh.scale )
-          .to( { x:1, y:1, z:1 }, 1000 )
-          .easing( TWEEN.Easing.Quadratic.Out )
-          .start();
-
-      }
+			var tweetLabel = makeCurvedLabel(text, {
+				width: 0.5, height: 0.1, radius: Utils.getRandomArbitrary(0.5, 1.5),
+				color: 'white',
+				fontPosition: { x: 10, y: 0 },
+				font: 'normal 24px montserrat',
+				wrapText: true,
+				verticalAlign: 'middle',
+				lineHeight: 24,
+				verticalAlign: 'top'
+			})
+			var mesh = tweetLabel.mesh;
+			mesh.material.alphaTest=0.2;
+			mesh.material.transparent = true;
 
 
-			var bubblesGroup = new THREE.Group;
+	    //randomize holder rotation and height
+	    var yRot = Utils.getRandomArbitrary( -120, 120 )
+	    mesh.rotation.set( 0, yRot * Math.PI/180, 0 )
+	    var yPos = Utils.getRandomArbitrary( 0, 0.5 );
+	    mesh.position.set( 0, yPos, 0 )
 
-			function getTweets() {
-				dolly.add( bubblesGroup );
+	    // return mesh;
+	    bubblesGroup.add( mesh );
+	    bubblesGroup.scale.set(2,2,2);
+	    bubbleAnimateIn( mesh );
+	  }
 
-        // get a first set of tweets so that the screen isn't empty.
-        var cachedTweets = Utils.loadJson('/tweets')
-        var stagger = 50;
-        var scale = 4;
-        cachedTweets.then(function(tweets) {
-          tweets.forEach(function(tweet, i) {
-            var data = { text: tweet.text  }
-            setTimeout(function() {
-              makeBubble( data );
-            }, i*stagger*scale);
-          })
-        })
-      }
+	  function bubbleAnimateIn( mesh ){
+	    var setY = mesh.position.y - 0.05;
+	    new TWEEN.Tween( mesh.position )
+	      .to( { y: setY }, 1000 )
+	      .easing( TWEEN.Easing.Quadratic.Out )
+	      .start();
+
+	    // mesh.scale.set( 0.5, 0.5, 0.5 );
+	    // new TWEEN.Tween( mesh.scale )
+	    //   .to( { x:1, y:1, z:1 }, 1000 )
+	    //   .easing( TWEEN.Easing.Quadratic.Out )
+	    //   .start();
+
+	    mesh.material.opacity = 0;
+			new TWEEN.Tween( mesh.material )
+	      .to( { opacity: 1 }, 2000 )
+	      .easing( TWEEN.Easing.Quadratic.Out )
+	      .start();
+	  }
 
 
+		var bubblesGroup = new THREE.Group;
 
+		function getTweets() {
+			dolly.add( bubblesGroup );
+
+	    // get a first set of tweets so that the screen isn't empty.
+	    var cachedTweets = Utils.loadJson('/tweets')
+	    var stagger = 50;
+	    var scale = 4;
+	    cachedTweets.then(function(tweets) {
+	      tweets.forEach(function(tweet, i) {
+	        var data = { text: tweet.text  }
+	        setTimeout(function() {
+	          makeBubble( data );
+	        }, i*stagger*scale);
+	      })
+	    })
+	  }
+
+
+    // gamepad
+    xBoxPad.on('pressed', function(buttons) {
+	    //if (buttons.length === 1 && buttons[0] === 'A') {
+	    if (buttons.length === 1 && buttons[0] === 'Start' || buttons[0] === 'A') {
+	      if (!playing) {
+	      	play();
+	      };
+
+	      return;
+	    };
+	  });
 
 		// keyboard
 		function onkey(event) {
